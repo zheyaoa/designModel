@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <form  id="registerForm" method="post">
+        请输入用户名:<input type="text" name="userName">
+        请输入手机号码:<input type="text" name="phoneNumber">
+        请输入密码:<input type="password" name="password">
+        <button>提交</button>
+    </form>
+</body>
+    <script>
+        var strategies = {
+            'isNonEmpty':function(value,errMessage){
+                if(value === '') return errMessage;
+            },
+            'minLength':function(value,minLength,errMessage){
+                if(value.length<minLength) return errMessage;
+            },
+            'isMobile':function(value,errMessage){
+                if(!/^1[3|5|8][0-9]{9}$/.test(value)) return errMessage;
+            }
+        }
+        var Validator = function(){
+            this.cache = [];
+        }
+        Validator.prototype.add = function(dom,rules){
+            var value = dom.value;
+            rules.forEach(rule => {
+                var strategyAry = rule.strategy.split(':');
+                var errMessage = rule.errMessage;
+                this.cache.push(function(){
+                    var strategy = strategyAry.shift();
+                    strategyAry.unshift(value);
+                    strategyAry.push(errMessage);
+                    return strategies[strategy].apply(dom,strategyAry)
+                })
+            });
+        }
+        Validator.prototype.start = function(){
+            var errMessage;
+            for(var i=0,validatorFnc;validatorFnc = this.cache[i++];){
+                errMessage = validatorFnc();
+                if(errMessage){
+                    return false;
+                }
+            }
+        }
+
+        var registerForm = document.querySelector('#registerForm');
+        registerForm.onsubmit = function(e){
+            e.preventDefault();
+            console.log(registerForm.userName)
+        }
+    </script>
+</html>
